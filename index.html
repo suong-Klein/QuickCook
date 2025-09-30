@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickCook • PWA Prototype</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2196f3" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    .brand-logo { font-weight: 700; }
+    main { padding-bottom: 80px; }
+    .hidden { display: none !important; }
+    .section-card img { width: 100%; height: auto; border-radius: 8px; }
+    .install-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
+  </style>
+</head>
+<body class="grey lighten-4">
+  <nav class="blue">
+    <div class="nav-wrapper container">
+      <a href="#home" class="brand-logo">QuickCook</a>
+      <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+      <ul class="right hide-on-med-and-down">
+        <li><a href="#home" class="nav-link">Home</a></li>
+        <li><a href="#pantry" class="nav-link">Pantry</a></li>
+        <li><a href="#timers" class="nav-link">Timers</a></li>
+        <li><a href="#list" class="nav-link">Shopping List</a></li>
+        <li><a href="#settings" class="nav-link">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <ul class="sidenav" id="mobile-nav">
+    <li><a href="#home" class="nav-link">Home</a></li>
+    <li><a href="#pantry" class="nav-link">Pantry</a></li>
+    <li><a href="#timers" class="nav-link">Timers</a></li>
+    <li><a href="#list" class="nav-link">Shopping List</a></li>
+    <li><a href="#settings" class="nav-link">Settings</a></li>
+  </ul>
+
+  <main class="container">
+    <section id="home" class="page">
+      <h5 class="blue-text text-darken-2">Featured Recipes</h5>
+      <div class="row">
+        <div class="col s12 m6">
+          <div class="card section-card">
+            <div class="card-image"><img src="assets/recipe1.jpg" alt="Seared Steak"></div>
+            <div class="card-content">
+              <span class="card-title">Seared Steak</span>
+              <p>Perfect crust, juicy center. Offline directions are cached.</p>
+            </div>
+            <div class="card-action">
+              <a href="#" class="btn-flat recipe-btn" data-name="Seared Steak">Open</a>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m6">
+          <div class="card section-card">
+            <div class="card-image"><img src="assets/recipe2.jpg" alt="Garlic Shrimp"></div>
+            <div class="card-content">
+              <span class="card-title">Garlic Shrimp</span>
+              <p>Fast, flavorful, and great for an air fryer or skillet.</p>
+            </div>
+            <div class="card-action">
+              <a href="#" class="btn-flat recipe-btn" data-name="Garlic Shrimp">Open</a>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m6">
+          <div class="card section-card">
+            <div class="card-image"><img src="assets/recipe3.jpg" alt="Crispy Wings"></div>
+            <div class="card-content">
+              <span class="card-title">Crispy Wings</span>
+              <p>Shatter-crisp texture with simple pantry ingredients.</p>
+            </div>
+            <div class="card-action">
+              <a href="#" class="btn-flat recipe-btn" data-name="Crispy Wings">Open</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pantry" class="page hidden">
+      <h5 class="blue-text text-darken-2">Pantry</h5>
+      <div class="input-field">
+        <input id="pantry-input" type="text" placeholder="Add an item e.g., 'ribeye', 'garlic'">
+      </div>
+      <button class="btn blue" id="add-pantry"><i class="material-icons left">add</i>Add</button>
+      <ul class="collection" id="pantry-list"></ul>
+    </section>
+
+    <section id="timers" class="page hidden">
+      <h5 class="blue-text text-darken-2">Cooking Timers</h5>
+      <div class="row">
+        <div class="input-field col s12 m4">
+          <input id="timer-min" type="number" min="0" value="0">
+          <label for="timer-min" class="active">Minutes</label>
+        </div>
+        <div class="input-field col s12 m4">
+          <input id="timer-sec" type="number" min="0" max="59" value="30">
+          <label for="timer-sec" class="active">Seconds</label>
+        </div>
+        <div class="input-field col s12 m4">
+          <input id="timer-name" type="text" value="Sear Side A">
+          <label for="timer-name" class="active">Label</label>
+        </div>
+      </div>
+      <button class="btn blue" id="start-timer"><i class="material-icons left">play_arrow</i>Start</button>
+      <ul class="collection" id="timer-list"></ul>
+    </section>
+
+    <section id="list" class="page hidden">
+      <h5 class="blue-text text-darken-2">Shopping List</h5>
+      <div class="row">
+        <div class="input-field col s8 m9">
+          <input id="shop-input" type="text" placeholder="Add to list">
+        </div>
+        <div class="input-field col s4 m3">
+          <input id="shop-qty" type="number" min="1" value="1">
+          <label for="shop-qty" class="active">Qty</label>
+        </div>
+      </div>
+      <button class="btn blue" id="add-shop"><i class="material-icons left">add_shopping_cart</i>Add</button>
+      <ul class="collection" id="shop-list"></ul>
+    </section>
+
+    <section id="settings" class="page hidden">
+      <h5 class="blue-text text-darken-2">Settings</h5>
+      <p>This prototype uses localStorage for data and a basic service worker for offline caching.</p>
+      <p>Try installing the app from your browser menu. On mobile, you can "Add to Home Screen".</p>
+      <button class="btn-flat" id="clear-data"><i class="material-icons left">delete_sweep</i>Clear Local Data</button>
+    </section>
+  </main>
+
+  <div id="install-banner" class="install-banner hidden">
+    <div class="card-panel blue white-text center">
+      <span class="flow-text" style="font-size:1.1rem;">Install QuickCook for a better, offline-friendly experience.</span>
+      <div style="margin-top:8px;">
+        <a id="install-btn" class="btn white blue-text text-darken-2">Install</a>
+        <a id="dismiss-btn" class="btn-flat white-text">Dismiss</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed-action-btn">
+    <a class="btn-floating btn-large blue"><i class="large material-icons">add</i></a>
+    <ul>
+      <li><a class="btn-floating green" id="fab-add-pantry" title="Add pantry"><i class="material-icons">kitchen</i></a></li>
+      <li><a class="btn-floating orange" id="fab-add-shop" title="Add shopping"><i class="material-icons">shopping_cart</i></a></li>
+      <li><a class="btn-floating red" id="fab-start-timer" title="Start timer"><i class="material-icons">timer</i></a></li>
+    </ul>
+  </div>
+
+  <div id="recipe-modal" class="modal">
+    <div class="modal-content">
+      <h5 id="recipe-title">Recipe</h5>
+      <ol id="recipe-steps"></ol>
+    </div>
+    <div class="modal-footer"><a href="#!" class="modal-close btn-flat">Close</a></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
