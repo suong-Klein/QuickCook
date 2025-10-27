@@ -1,10 +1,10 @@
 {
   "name": "QuickCook",
   "short_name": "QuickCook",
-  "description": "Offline-friendly cooking & pantry PWA prototype with Materialize CSS.",
+  "description": "Kitchen PWA: pantry, shopping list, timers, meal planner, favorites, dark mode, and user recipes.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#0f1115",
   "theme_color": "#2196f3",
   "icons": [
     {

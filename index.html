@@ -4,20 +4,127 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuickCook • PWA Prototype</title>
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2196f3" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  
   <style>
-    .brand-logo { font-weight: 700; }
-    main { padding-bottom: 80px; }
-    .hidden { display: none !important; }
-    .section-card img { width: 100%; height: auto; border-radius: 8px; }
-    .install-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
+  /* ===== THEME: light & dark tokens ===== */
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --elev: #f1f3f5;
+    --text: #0f172a;
+    --muted: #475569;
+    --divider: #e2e8f0;
+    --primary: #2196f3;
+
+    /* Dynamic logo color */
+    --logo-light: #2196f3; /* original blue (light mode) */
+    --logo-dark:  #ffffff; /* white (dark mode) */
+  }
+  html, body { background: var(--bg) !important; color: var(--text); }
+
+  html.dark, body.dark {
+    --bg: #0f1115;
+    --surface: #161a22;
+    --elev: #1b2130;
+    --text: #e6eaf2;
+    --muted: #b8c0cc;
+    --divider: #283044;
+    --primary: #2196f3;
+  }
+
+  /* Logo color that switches with theme */
+  .brand-logo {
+    color: var(--logo-light) !important;
+    font-weight: 700;
+    transition: color .2s ease;
+  }
+  html.dark .brand-logo, body.dark .brand-logo {
+    color: var(--logo-dark) !important;
+  }
+
+  main, .page, .container, .section, .row {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+  }
+  .container { max-width: 1140px; }
+  .brand-logo { font-weight: 700; }
+  main { padding-bottom: 100px; }
+  .hidden { display: none !important; }
+  .section-card img { width: 100%; height: auto; border-radius: 8px; }
+  .install-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000; display:none; }
+  .fixed-action-btn { z-index: 2001; }
+
+  /* Navbar */
+  nav, .nav-wrapper { background: #0f141b !important; box-shadow: none !important; }
+
+  /* Cards / panels / lists / dropdowns */
+  .card, .card-panel, .collection, .modal, .dropdown-content {
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    box-shadow: none !important;
+  }
+  .card .card-title, h1,h2,h3,h4,h5,h6 { color: var(--text) !important; }
+  .card .card-action { border-top: 1px solid var(--divider) !important; }
+  .collection .collection-item {
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--divider) !important;
+    color: var(--text) !important;
+  }
+
+  /* Inputs */
+  .input-field input, .input-field textarea,
+  input[type="number"], input[type="text"] {
+    background: var(--elev) !important;
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--divider) !important;
+    caret-color: var(--text) !important;
+  }
+  .input-field input::placeholder, .input-field textarea::placeholder { color: var(--muted) !important; }
+  .input-field label, label { color: var(--muted) !important; }
+  .input-field input:focus, .input-field textarea:focus {
+    border-bottom: 1px solid var(--primary) !important;
+    box-shadow: 0 1px 0 0 var(--primary) !important;
+  }
+  .input-field input:focus + label, .input-field textarea:focus + label { color: var(--primary) !important; }
+
+  /* Buttons */
+  .btn, .btn-large { background: var(--primary) !important; color:#fff !important; }
+  .btn-flat { color: var(--text) !important; }
+
+  /* Sidenav */
+  .sidenav { background: var(--surface) !important; }
+  .sidenav a { color: var(--text) !important; }
+  .sidenav .divider, .divider { background: var(--divider) !important; }
+
+  /* Modals footer + overlay */
+  .modal .modal-footer { background: var(--surface) !important; border-top: 1px solid var(--divider) !important; }
+  .modal-overlay { background: rgba(0,0,0,.5) !important; }
+  html.dark .modal-overlay { background: rgba(0,0,0,.7) !important; }
+
+  /* Install banner & toasts */
+  #install-banner .card-panel { background: var(--elev) !important; color: var(--text) !important; }
+  .toast { background: var(--elev) !important; color: var(--text) !important; border: 1px solid var(--divider); }
+
+  a, .card-action a { color: var(--primary) !important; }
+
+  img { border-radius: 8px; }
+  html.dark img { border: 1px solid var(--divider); }
+
+  /* Optional nicer scrollbar on dark */
+  html.dark ::-webkit-scrollbar { width: 10px; height:10px; }
+  html.dark ::-webkit-scrollbar-thumb { background: #2a3246; border-radius: 8px; }
   </style>
+
 </head>
-<body class="grey lighten-4">
-  <nav class="blue">
+<body>
+  <nav>
     <div class="nav-wrapper container">
       <a href="#home" class="brand-logo">QuickCook</a>
       <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
@@ -26,6 +133,7 @@
         <li><a href="#pantry" class="nav-link">Pantry</a></li>
         <li><a href="#timers" class="nav-link">Timers</a></li>
         <li><a href="#list" class="nav-link">Shopping List</a></li>
+        <li><a href="#planner" class="nav-link">Meal Planner</a></li>
         <li><a href="#settings" class="nav-link">Settings</a></li>
       </ul>
     </div>
@@ -36,56 +144,23 @@
     <li><a href="#pantry" class="nav-link">Pantry</a></li>
     <li><a href="#timers" class="nav-link">Timers</a></li>
     <li><a href="#list" class="nav-link">Shopping List</a></li>
+    <li><a href="#planner" class="nav-link">Meal Planner</a></li>
     <li><a href="#settings" class="nav-link">Settings</a></li>
   </ul>
 
   <main class="container">
     <section id="home" class="page">
       <h5 class="blue-text text-darken-2">Featured Recipes</h5>
-      <div class="row">
-        <div class="col s12 m6">
-          <div class="card section-card">
-            <div class="card-image"><img src="assets/recipe1.jpg" alt="Seared Steak"></div>
-            <div class="card-content">
-              <span class="card-title">Seared Steak</span>
-              <p>Perfect crust, juicy center. Offline directions are cached.</p>
-            </div>
-            <div class="card-action">
-              <a href="#" class="btn-flat recipe-btn" data-name="Seared Steak">Open</a>
-            </div>
-          </div>
-        </div>
-        <div class="col s12 m6">
-          <div class="card section-card">
-            <div class="card-image"><img src="assets/recipe2.jpg" alt="Garlic Shrimp"></div>
-            <div class="card-content">
-              <span class="card-title">Garlic Shrimp</span>
-              <p>Fast, flavorful, and great for an air fryer or skillet.</p>
-            </div>
-            <div class="card-action">
-              <a href="#" class="btn-flat recipe-btn" data-name="Garlic Shrimp">Open</a>
-            </div>
-          </div>
-        </div>
-        <div class="col s12 m6">
-          <div class="card section-card">
-            <div class="card-image"><img src="assets/recipe3.jpg" alt="Crispy Wings"></div>
-            <div class="card-content">
-              <span class="card-title">Crispy Wings</span>
-              <p>Shatter-crisp texture with simple pantry ingredients.</p>
-            </div>
-            <div class="card-action">
-              <a href="#" class="btn-flat recipe-btn" data-name="Crispy Wings">Open</a>
-            </div>
-          </div>
-        </div>
+      <div class="right-align" style="margin-bottom:10px;">
+        <a href="#!" class="btn blue" id="add-recipe-btn"><i class="material-icons left">note_add</i>Add Recipe</a>
       </div>
+      <div class="row" id="recipe-cards"></div>
     </section>
 
     <section id="pantry" class="page hidden">
       <h5 class="blue-text text-darken-2">Pantry</h5>
       <div class="input-field">
-        <input id="pantry-input" type="text" placeholder="Add an item e.g., 'ribeye', 'garlic'">
+        <input id="pantry-input" type="text" placeholder="Add an item e.g., 'steak', 'garlic'">
       </div>
       <button class="btn blue" id="add-pantry"><i class="material-icons left">add</i>Add</button>
       <ul class="collection" id="pantry-list"></ul>
@@ -126,21 +201,43 @@
       <ul class="collection" id="shop-list"></ul>
     </section>
 
+    <section id="planner" class="page hidden">
+      <h5 class="blue-text text-darken-2">Meal Planner</h5>
+      <p class="grey-text">Suggestions based on what’s in your pantry</p>
+      <ul class="collection" id="planner-suggestions"></ul>
+    </section>
+
     <section id="settings" class="page hidden">
       <h5 class="blue-text text-darken-2">Settings</h5>
-      <p>This prototype uses localStorage for data and a basic service worker for offline caching.</p>
-      <p>Try installing the app from your browser menu. On mobile, you can "Add to Home Screen".</p>
-      <button class="btn-flat" id="clear-data"><i class="material-icons left">delete_sweep</i>Clear Local Data</button>
+      <p><label><input type="checkbox" id="dark-toggle" /><span>Enable Dark Mode</span></label></p>
+      <p><button class="btn" id="ask-notify"><i class="material-icons left">notifications</i>Enable Timer Notifications</button></p>
+      <div class="card-panel">
+        <h6>Cloud Sync (Optional)</h6>
+        <p class="grey-text">Sync pantry & shopping list across devices with Firebase.</p>
+        <p><label><input type="checkbox" id="sync-toggle" /><span>Enable Firebase Sync</span></label></p>
+        <div class="input-field">
+          <input id="firebase-config-json" type="text" placeholder='Paste your Firebase config JSON here'>
+          <label for="firebase-config-json" class="active">Firebase Config (JSON)</label>
+        </div>
+        <button class="btn" id="sync-connect"><i class="material-icons left">cloud_queue</i>Connect</button>
+      </div>
     </section>
   </main>
 
-  <div id="install-banner" class="install-banner hidden">
+  <div id="install-banner" class="install-banner">
     <div class="card-panel blue white-text center">
-      <span class="flow-text" style="font-size:1.1rem;">Install QuickCook for a better, offline-friendly experience.</span>
+      <span class="flow-text" style="font-size:1.1rem;">Install QuickCook for an offline-friendly experience.</span>
       <div style="margin-top:8px;">
         <a id="install-btn" class="btn white blue-text text-darken-2">Install</a>
-        <a id="dismiss-btn" class="btn-flat white-text">Dismiss</a>
+        <a id="dismiss-btn" class="btn-flat white-text">Not now</a>
       </div>
+    </div>
+  </div>
+
+  <div id="ios-tip" style="display:none; position:fixed; left:0; right:0; bottom:0; z-index:1999;">
+    <div style="margin:10px; padding:10px; border-radius:10px; background:#263238; color:#fff; text-align:center;">
+      Add to Home Screen: tap <b>Share</b> → <b>Add to Home Screen</b>
+      <button id="ios-tip-dismiss" style="margin-left:10px;background:transparent;border:1px solid #fff;color:#fff;border-radius:8px;padding:4px 10px;cursor:pointer;">Dismiss</button>
     </div>
   </div>
 
@@ -153,14 +250,50 @@
     </ul>
   </div>
 
+  <!-- Recipe viewer -->
   <div id="recipe-modal" class="modal">
     <div class="modal-content">
       <h5 id="recipe-title">Recipe</h5>
       <ol id="recipe-steps"></ol>
     </div>
-    <div class="modal-footer"><a href="#!" class="modal-close btn-flat">Close</a></div>
+    <div class="modal-footer">
+      <a href="#!" class="btn-flat" id="edit-recipe-btn">Edit</a>
+      <a href="#!" class="modal-close btn-flat">Close</a>
+    </div>
   </div>
 
+  <!-- Add/Edit Recipe modal -->
+  <div id="user-recipe-modal" class="modal">
+    <div class="modal-content">
+      <h5 id="ur-title">Add Recipe</h5>
+      <div class="row">
+        <div class="input-field col s12">
+          <input id="ur-name" type="text" required>
+          <label for="ur-name" class="active">Recipe Title</label>
+        </div>
+        <div class="input-field col s12">
+          <input id="ur-image" type="url" placeholder="https://… (optional)">
+          <label for="ur-image" class="active">Image URL (optional)</label>
+        </div>
+        <div class="input-field col s12">
+          <textarea id="ur-ingredients" class="materialize-textarea" placeholder="steak, salt, pepper"></textarea>
+          <label for="ur-ingredients" class="active">Ingredients (comma-separated)</label>
+        </div>
+        <div class="input-field col s12">
+          <textarea id="ur-steps" class="materialize-textarea" placeholder="One step per line"></textarea>
+          <label for="ur-steps" class="active">Steps (one per line)</label>
+        </div>
+        <input type="hidden" id="ur-original-name" value="">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="btn-flat modal-close" id="ur-cancel">Cancel</a>
+      <a href="#!" class="btn blue" id="ur-save">Save</a>
+    </div>
+  </div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script src="app.js"></script>
 </body>
