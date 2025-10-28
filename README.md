@@ -45,7 +45,7 @@ Service workers require `http(s)`:
 **Option A (Python 3)**
 1. Open a terminal **inside** the `quickcook-final` folder (the one with `index.html`).  
 2. Run:  
-   `py -m http.server 8080` 
+   `python -m http.server 8080`  
 3. Open:  
    `http://localhost:8080/`
 
@@ -100,3 +100,124 @@ Service workers require `http(s)`:
 ## Credits
 - UI: **Materialize CSS** (CDN).  
 - Code: Educational prototype for coursework.
+
+---
+
+# PWA Details: Service Worker, Caching Strategy, and Manifest
+
+## Service Worker (sw.js)
+
+**What it does**
+- Registers on first visit and **pre-caches** core files so the app opens offline.
+- Intercepts network requests to serve fast, resilient responses.
+- Shows **timer notifications** (via `registration.showNotification`) and focuses the app when a notification is clicked.
+- Uses a **versioned cache** (e.g., `const CACHE_NAME = 'quickcook-v12'`) so updates are easy to roll out.
+
+**Key lifecycle**
+```js
+// sw.js (high level)
+const CACHE_NAME = 'quickcook-v12';
+const PRECACHE = [
+  './', './index.html',
+  './app.js', './sw.js', './manifest.json',
+  './assets/icon-192.png', './assets/icon-512.png',
+  './assets/recipe1.jpg', './assets/recipe2.jpg', './assets/recipe3.jpg'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k != CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  event.respondWith(
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
+      if (req.method === 'GET' && new URL(req.url).origin === self.location.origin) {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, copy)).catch(()=>{});
+      }
+      return res;
+    }).catch(() => {
+      if (req.destination === 'document') return caches.match('./index.html');
+    }))
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+    const visible = clients.find(c => c.visibilityState === 'visible');
+    if (visible) return visible.focus();
+    if (clients[0]) return clients[0].focus();
+    return self.clients.openWindow('./');
+  })());
+});
+```
+
+**How updates roll out**
+- When you change front-end files, **bump `CACHE_NAME`** (`quickcook-v13`, `v14`, …).
+- Users get the new cache after the next reload; old caches are removed in `activate`.
+
+**What’s cached**
+- **Precache**: app shell (`index.html`, `app.js`, `sw.js`, `manifest.json`), icons, and placeholder images.
+- **Runtime cache**: subsequent same-origin GET requests are cached after first use.
+
+**Why this strategy**
+- **Cache-first for static assets** = instant loads, reliable offline.
+- **Network-fallback** keeps it simple yet robust for a prototype.
+
+## Web App Manifest (manifest.json)
+
+```json
+{
+  "name": "QuickCook",
+  "short_name": "QuickCook",
+  "description": "A lightweight PWA for pantry, shopping, recipes, timers, and meal planning.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f141b",
+  "theme_color": "#2196f3",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+Linked in HTML:
+```html
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2196f3">
+```
+
+## Integration & Install Prompt
+- `app.js` registers the service worker (`navigator.serviceWorker.register('sw.js')`).
+- **Install banner** auto-appears on first visit; clicking **Install** triggers the native prompt on Chromium.
+- iOS Safari shows a **“Share → Add to Home Screen”** tip (no native prompt).
+
+Reset install cool‑down during testing:
+```js
+localStorage.removeItem('qc_install_seen_v2'); location.reload();
+```
+
+## Verification Checklist
+1) **SW active**: DevTools → Application → Service Workers shows an active worker (e.g., `quickcook-v12`).  
+2) **Offline**: Go offline, refresh; app still works.  
+3) **Manifest**: DevTools → Manifest shows valid fields + icons; Chrome offers Install.  
+4) **Notifications**: Enable in Settings, start a short timer, switch pages; notification appears on completion (Chromium).
+
+## Common Gotchas
+- PWA features won’t work over `file://` — use `http(s)` or `localhost`.  
+- If an old version persists, hard refresh or **Unregister** the SW; bump `CACHE_NAME`.  
+- For GitHub Pages (subpaths), keep `"start_url": "./index.html"`.
