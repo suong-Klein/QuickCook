@@ -1,223 +1,242 @@
-# QuickCook — PWA Prototype (Materialize CSS)
+# QuickCook — PWA with Firebase & IndexedDB
 
 ## Overview
-**QuickCook** is a lightweight Progressive Web App that streamlines kitchen tasks and demonstrates core PWA features (installability, offline, responsive UI). It includes pantry & shopping management with quantities, multi-timers with pause/resume + notifications, a meal planner that suggests recipes from your pantry, favorites, dark mode, and an install prompt banner. All data is stored locally—no backend.
 
-## Tech Stack
-- HTML + **Materialize CSS** (CDN)
-- Vanilla JavaScript
-- **Service Worker** + **Web App Manifest**
-- LocalStorage (device-local persistence)
+**QuickCook** is a Progressive Web App that streamlines kitchen tasks and demonstrates modern PWA and offline-first patterns:
 
-## Features
-- **Pantry**  
-  - Add items, adjust quantity (+/−), delete.  
-  - Stays on the page after actions (no unwanted navigation).
-- **Shopping List**  
-  - Add items with quantity, +/−, delete.  
-  - **Add to Pantry** merges quantities instantly and shows immediately in Pantry.
-- **Recipes**  
-  - Default sample recipes auto-seeded.  
-  - **Add/Edit/Delete your own recipes** (title, image URL, ingredients, steps).  
-  - **Favorites** (star toggle) and quick view modal.
-- **Meal Planner**  
-  - Suggests recipes by comparing pantry items to recipe ingredients (shows “have / need” and missing items).
-- **Timers**  
-  - Multiple timers with names, **pause/resume/remove**.  
-  - **Notifications**: Uses the Service Worker to show OS-level notifications when timers complete (Chromium + supported platforms), plus in-app toasts as a fallback.
-- **Installability**  
-  - **Install banner** (auto-shows on first visit, with a cooldown).  
-  - Native install prompt on Chrome/Edge/Brave after user clicks **Install**.  
-  - iOS Safari **“Add to Home Screen”** tip.
-- **Offline**  
-  - Service worker pre-caches HTML, CSS, JS, icons, and images.  
-  - Cache-first strategy for assets; pages usable offline after first visit.
-- **Dark Mode**  
-  - Accessible dark theme across all pages (navbar, cards, lists, inputs).  
-  - Brand logo color adapts (blue in light mode, white in dark).
-- **FAB (+/−)**  
-  - Quick shortcuts to Pantry, Shopping, Timers.  
-  - Icon flips reliably between **+** and **−**; synced across page changes.
-
-## How to Run Locally
-Service workers require `http(s)`:
-
-**Option A (Python 3)**
-1. Open a terminal **inside** the `quickcook-final` folder (the one with `index.html`).  
-2. Run:  
-   `python -m http.server 8080`  
-3. Open:  
-   `http://localhost:8080/`
-
-**Option B (serve parent folder)**
-1. Start the server in the parent directory.  
-2. Open:  
-   `http://localhost:8080/quickcook-final/`
-
-**Option C (VS Code Live Server)**
-- Right-click `index.html` → **Open with Live Server**.
-
-## Install as a PWA
-- **Desktop Chrome/Edge/Brave**: On first visit you’ll see the in-app **Install** banner. Click **Install** to trigger the native prompt.  
-- **Android (Chromium browsers)**: Same as desktop; app installs to the launcher.  
-- **iOS Safari**: Use **Share → Add to Home Screen** (a tip appears automatically on first visit).
-
-## Test Offline
-1. Visit the app once while online (assets get cached).  
-2. In DevTools → Network, toggle **Offline**.  
-3. Refresh: navigate Home, Pantry, Timers, Shopping, Planner, Settings—content should load from cache.
-
-## Notifications (Timers)
-- Go to **Settings** → **Enable Timer Notifications** and allow the browser prompt.  
-- Start a short timer, navigate to another page or tab; when the timer ends, a system notification should appear (supported platforms). iOS shows in-app toasts unless web push is fully enabled on the OS.
-
-## Project Structure
-- `index.html` — Layout, sections (Home, Pantry, Timers, Shopping, Planner, Settings), FAB, install banner, iOS tip.  
-- `app.js` — Hash-based routing, FAB sync, pantry/shopping/timers logic, recipes CRUD, favorites, meal planner scoring, dark-mode toggle, **install banner + iOS tip** logic, SW registration, notifications.  
-- `sw.js` — Service worker (precache & runtime fetch; offline), notification click handler; cache name bumped per release.  
-- `manifest.json` — Web App Manifest (`name`, `short_name`, `description`, `icons`, `start_url`, `display: standalone`, `theme_color`, `background_color`).  
-- `assets/` — App icons (`icon-192.png`, `icon-512.png`) and placeholder images.
-
-## GitHub Submission / Pages
-1. Create a **public** repo (e.g., `quickcook-pwa`).  
-2. Put project files in the repo (keep `index.html` at the root or under `quickcook-final/`).  
-3. **Settings → Pages**: Deploy from `main`, folder **/ (root)** (or `/docs` if you move files).  
-4. Open your Pages URL (HTTPS) and test install + offline.  
-5. Ensure `manifest.json` has `"start_url": "./index.html"` so it works under subpaths.
-
-## Troubleshooting
-- **404 / Not Found**: If you started the server in the parent folder, use `/quickcook-final/`. If you started it inside the folder with `index.html`, use `/`.  
-- **Old version persisting**: Hard refresh (Ctrl/Cmd+Shift+R). In DevTools → Application → Service Workers → **Unregister** then reload.  
-- **Install banner not showing**: It appears once per cooldown window. Reset via Console:  
-  `localStorage.removeItem('qc_install_seen_v2'); location.reload();`  
-- **Notifications not appearing**: Ensure permission is **Allowed** and you’re on `https` or `http://localhost`. iOS may only show in-app toasts unless additional web-push setup is done.  
-- **Blank page / stuck view**: Make sure you’re at the correct URL and that `app.js` is loading after Materialize JS.
-
-## Limitations (Prototype)
-- No authentication or cloud sync (Firebase suggestions are noted for future work).  
-- Placeholder recipes/images; educational demo, not production cooking guidance.
-
-## Credits
-- UI: **Materialize CSS** (CDN).  
-- Code: Educational prototype for coursework.
+- Pantry + shopping list with quantities
+- Featured and custom recipes
+- Meal planner suggestions based on your pantry
+- Multiple timers with pause/resume and notifications
+- Dark mode and a floating action button (FAB) for quick navigation
+- Installable, offline-capable, and synced via Firebase when online
 
 ---
 
-# PWA Details: Service Worker, Caching Strategy, and Manifest
+## Tech Stack
 
-## Service Worker (sw.js)
+- HTML + **Materialize CSS** (CDN)
+- Vanilla JavaScript
+- **Service Worker** for caching & offline support
+- **Web App Manifest** for installability
+- **IndexedDB** for local/offline storage
+- **Firebase Firestore** for online cloud storage & synchronization
 
-**What it does**
-- Registers on first visit and **pre-caches** core files so the app opens offline.
-- Intercepts network requests to serve fast, resilient responses.
-- Shows **timer notifications** (via `registration.showNotification`) and focuses the app when a notification is clicked.
-- Uses a **versioned cache** (e.g., `const CACHE_NAME = 'quickcook-v12'`) so updates are easy to roll out.
+---
 
-**Key lifecycle**
-```js
-// sw.js (high level)
-const CACHE_NAME = 'quickcook-v12';
-const PRECACHE = [
-  './', './index.html',
-  './app.js', './sw.js', './manifest.json',
-  './assets/icon-192.png', './assets/icon-512.png',
-  './assets/recipe1.jpg', './assets/recipe2.jpg', './assets/recipe3.jpg'
-];
+## Features
 
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(PRECACHE)));
-  self.skipWaiting();
-});
+### Pantry
+- Add items, adjust quantity (+/−), delete.
+- Stays on the pantry page after actions.
+- Persists locally and syncs to Firestore when online.
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k != CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
+### Shopping List
+- Add items with quantity, update (+/−), delete.
+- **Add to Pantry**:
+  - Moves/merges items into pantry.
+  - Uses consistent quantities and updates immediately.
 
-self.addEventListener('fetch', event => {
-  const req = event.request;
-  event.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      if (req.method === 'GET' && new URL(req.url).origin === self.location.origin) {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(req, copy)).catch(()=>{});
-      }
-      return res;
-    }).catch(() => {
-      if (req.destination === 'document') return caches.match('./index.html');
-    }))
-  );
-});
+### Recipes
+- Default sample recipes (seeded with stable IDs to avoid duplicates).
+- **Add / Edit / Delete** custom recipes:
+  - Title, image URL, ingredients, steps.
+- View recipe details in a modal.
 
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil((async () => {
-    const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
-    const visible = clients.find(c => c.visibilityState === 'visible');
-    if (visible) return visible.focus();
-    if (clients[0]) return clients[0].focus();
-    return self.clients.openWindow('./');
-  })());
-});
+### Meal Planner
+- Suggests recipes by comparing pantry items to recipe ingredients.
+- Shows how many ingredients you have vs need and what’s missing.
+
+### Timers
+- Multiple named timers.
+- Pause, resume, remove.
+- Uses Notifications API + Service Worker (where supported); falls back to in-app toasts.
+
+### Dark Mode
+- Dark theme applied consistently across pages (navbar, cards, lists).
+- Brand/logo colors adapt to light/dark mode.
+- Preference stored in `localStorage`.
+
+### FAB (+ / −)
+- Floating Action Button for quick navigation (e.g., pantry, shopping, timers).
+- Icon toggles between **+** (closed) and **−** (expanded).
+
+---
+
+## PWA Implementation
+
+### Manifest (`manifest.json`)
+- Defines:
+  - `name`, `short_name`, `description`
+  - `start_url: "./index.html"`
+  - `display: "standalone"`
+  - `theme_color` and `background_color`
+  - Icons (`192x192`, `512x512`) in `/assets`
+- Linked in `index.html`:
+  ```html
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2196f3">
+  ```
+
+### Service Worker (`sw.js`)
+- Pre-caches core assets:
+  - `index.html`, `app.js`, `sw.js`, `manifest.json`
+  - Icons and recipe images
+- Cache-first strategy for static assets.
+- Fallback to cached shell when offline.
+- Cleans up old caches on `activate`.
+- Handles notification clicks (focuses or opens the app).
+
+---
+
+## Data Storage: Firebase + IndexedDB
+
+QuickCook uses a **hybrid** model.
+
+### Online (Firestore-first)
+When online and Firebase is configured:
+
+- CRUD for `pantry`, `shopping`, and `recipes`:
+  - Writes to **Cloud Firestore** collections.
+  - Mirrors data into **IndexedDB** (`quickcook-db`) as a local cache.
+- Firestore is the source of truth across devices.
+
+### Offline (IndexedDB + Pending Queue)
+When offline or Firestore is unreachable:
+
+- CRUD operations are applied to IndexedDB only:
+  - Object stores: `pantry`, `shopping`, `recipes`.
+- Each operation is also added to a `pending` store with:
+  - `op: "set"` or `op: "delete"`,
+  - target `collection`,
+  - `data` including a stable `id`.
+
+### Synchronization & IDs
+- Each record uses a client-generated stable `id`.
+- The same `id` is used in:
+  - IndexedDB
+  - Firestore document IDs
+  - Pending operations
+- On reconnect:
+  - `syncPending()` replays queued ops to Firestore in order.
+  - Successful ops are removed from `pending`.
+  - A toast informs the user when sync is complete.
+- This avoids duplicates and ID conflicts.
+
+---
+
+## How to Run Locally
+
+Because of the service worker and Firebase, do **not** open via `file://`.
+
+### Option A — Python
+
+```bash
+python -m http.server 8080
 ```
 
-**How updates roll out**
-- When you change front-end files, **bump `CACHE_NAME`** (`quickcook-v13`, `v14`, …).
-- Users get the new cache after the next reload; old caches are removed in `activate`.
+Then open:
 
-**What’s cached**
-- **Precache**: app shell (`index.html`, `app.js`, `sw.js`, `manifest.json`), icons, and placeholder images.
-- **Runtime cache**: subsequent same-origin GET requests are cached after first use.
+```text
+http://localhost:8080/
+```
 
-**Why this strategy**
-- **Cache-first for static assets** = instant loads, reliable offline.
-- **Network-fallback** keeps it simple yet robust for a prototype.
+### Option B — VS Code Live Server
 
-## Web App Manifest (manifest.json)
+- Open the project folder.
+- Right-click `index.html` → **Open with Live Server**.
 
-```json
-{
-  "name": "QuickCook",
-  "short_name": "QuickCook",
-  "description": "A lightweight PWA for pantry, shopping, recipes, timers, and meal planning.",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0f141b",
-  "theme_color": "#2196f3",
-  "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+Any simple static server works.
+
+---
+
+## Firebase Setup (for Reviewers)
+
+1. Create a Firebase project.
+2. Enable **Cloud Firestore**.
+3. Add a Web App and copy its `firebaseConfig`.
+4. In `index.html`, include:
+
+```html
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = { /* your config */ };
+  const firebaseApp = firebase.initializeApp(firebaseConfig);
+  const firestore = firebase.firestore();
+</script>
+<script src="app.js"></script>
+```
+
+5. Use relaxed rules for grading, e.g.:
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
 }
 ```
 
-Linked in HTML:
-```html
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2196f3">
-```
+Update these rules for real-world use.
 
-## Integration & Install Prompt
-- `app.js` registers the service worker (`navigator.serviceWorker.register('sw.js')`).
-- **Install banner** auto-appears on first visit; clicking **Install** triggers the native prompt on Chromium.
-- iOS Safari shows a **“Share → Add to Home Screen”** tip (no native prompt).
+---
 
-Reset install cool‑down during testing:
-```js
-localStorage.removeItem('qc_install_seen_v2'); location.reload();
-```
+## How to Test Online/Offline & Sync
 
-## Verification Checklist
-1) **SW active**: DevTools → Application → Service Workers shows an active worker (e.g., `quickcook-v12`).  
-2) **Offline**: Go offline, refresh; app still works.  
-3) **Manifest**: DevTools → Manifest shows valid fields + icons; Chrome offers Install.  
-4) **Notifications**: Enable in Settings, start a short timer, switch pages; notification appears on completion (Chromium).
+1. **Online CRUD**
+   - Add pantry/shopping/recipe items.
+   - Confirm they appear in Firestore and in `IndexedDB > quickcook-db`.
 
-## Common Gotchas
-- PWA features won’t work over `file://` — use `http(s)` or `localhost`.  
-- If an old version persists, hard refresh or **Unregister** the SW; bump `CACHE_NAME`.  
-- For GitHub Pages (subpaths), keep `"start_url": "./index.html"`.
+2. **Offline CRUD**
+   - In DevTools → Network → set to **Offline**.
+   - Perform adds/edits/deletes.
+   - Data remains visible; changes are stored in IndexedDB and queued.
+
+3. **Sync**
+   - Switch back to **Online**.
+   - App runs `syncPending()` automatically.
+   - Check Firestore: offline changes are applied.
+   - `pending` store is cleared.
+
+4. **Persistence**
+   - Reload the app:
+     - Data persists via IndexedDB (offline) and/or Firestore (online).
+
+---
+
+## Project Structure
+
+- `index.html` — Layout, sections, navigation, FAB, dark mode toggle.
+- `app.js` — UI logic, routing, pantry/shopping/recipes/timers, meal planner, FAB control, Firebase + IndexedDB logic, sync.
+- `sw.js` — Service worker for caching, offline, and notifications handling.
+- `manifest.json` — Web App Manifest configuration.
+- `assets/` — Icons and placeholder images.
+
+---
+
+## Troubleshooting
+
+- PWA requires `http://localhost` or HTTPS (not `file://`).
+- If an old version persists, hard refresh or unregister the service worker in DevTools.
+- If offline doesn’t work, confirm `sw.js` is at root and registered.
+- If Firebase errors appear, verify your `firebaseConfig`, Firestore is enabled, and rules allow reads/writes for testing.
+
+---
+
+## Limitations
+
+- No authentication or per-user data isolation in this demo configuration.
+- Sample recipes/images only; not production-ready.
+
+---
+
+## Credits
+
+- UI: **Materialize CSS**
+- Cloud sync: **Firebase Firestore**
+- Offline storage: **IndexedDB**
+- Built as an educational PWA + offline-first prototype.

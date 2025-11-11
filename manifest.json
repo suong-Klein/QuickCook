@@ -1,0 +1,21 @@
+{
+  "name": "QuickCook",
+  "short_name": "QuickCook",
+  "description": "Kitchen PWA: pantry, shopping list, timers, meal planner, favorites, dark mode, and user recipes.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#2196f3",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

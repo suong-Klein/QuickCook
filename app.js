@@ -1,3 +1,6 @@
+// QuickCook main app with Firebase + IndexedDB + PWA
+// This file handles UI, offline storage, Firebase sync, and PWA behavior.
+
 document.addEventListener('DOMContentLoaded', () => {
   // Materialize init (guarded)
   if (window.M) {
@@ -385,3 +388,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
+// ===============================
+// FAB (+ / −)
+// ===============================
+const fabElem = document.querySelector('.fixed-action-btn');
+let fabInstance = null;
+const mainFabBtn = fabElem ? fabElem.querySelector('.btn-floating') : null;
+const mainFabIcon = mainFabBtn ? mainFabBtn.querySelector('i') : null;
+
+function updateFabIcon() {
+  if (!fabElem || !mainFabIcon) return;
+  const isOpen = fabElem.classList.contains('active');
+  mainFabIcon.textContent = isOpen ? 'remove' : 'add';
+}
+
+function resetFab() {
+  if (fabInstance) fabInstance.close();
+  updateFabIcon();
+}
+
+if (fabElem && window.M && M.FloatingActionButton) {
+  fabInstance = M.FloatingActionButton.init(fabElem, {
+    hoverEnabled: false
+  });
+
+  if (mainFabBtn) {
+    mainFabBtn.addEventListener('click', () => {
+      setTimeout(updateFabIcon, 0);
+    });
+  }
+
+  fabElem.querySelectorAll('ul a.btn-floating').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (fabInstance) fabInstance.close();
+      updateFabIcon();
+    });
+  });
+
+  updateFabIcon();
+}
+
