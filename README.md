@@ -132,7 +132,7 @@ Because of the service worker and Firebase, do **not** open via `file://`.
 ### Option A — Python
 
 ```bash
-python -m http.server 8080
+py -m http.server 8080
 ```
 
 Then open:
